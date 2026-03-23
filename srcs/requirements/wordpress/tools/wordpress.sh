@@ -10,6 +10,8 @@ if [ ! -f wp-config.php ]; then
     # 1. On télécharge les fichiers sources de WordPress
     wp core download --allow-root
 
+    sleep 10
+
     # 2. On crée le fichier wp-config.php pour lier WordPress à MariaDB
     # On utilise le nom de conteneur "mariadb" comme adresse hôte (dbhost)
     wp config create --dbname=${MYSQL_DATABASE} \
@@ -36,6 +38,8 @@ if [ ! -f wp-config.php ]; then
 else
     echo "WordPress est déjà installé et configuré."
 fi
+
+chown -R www-data:www-data /var/www/wordpress
 
 # 5. Règle d'or de Docker : on lance PHP-FPM au premier plan (-F) pour garder le conteneur en vie
 exec /usr/sbin/php-fpm8.2 -F

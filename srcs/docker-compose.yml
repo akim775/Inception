@@ -33,12 +33,12 @@ services:
             - wordpress
         ports:
             - "443:443"
-    env_file:
-        - .env
-    networks:
-        - inception
-    volumes:
-        - wordpress:/var/www/wordpress
+        env_file:
+            - .env
+        networks:
+            - inception
+        volumes:
+            - wordpress:/var/www/wordpress
 
 networks:
     inception:
