@@ -1,6 +1,6 @@
 # Variables
 COMPOSE_FILE = srcs/docker-compose.yml
-DATA_PATH = /home/$(USER)/data
+DATA_PATH = /home/ahamini/data
 
 # Règle par défaut
 all: 
@@ -22,8 +22,8 @@ clean: down
 
 # Grand nettoyage (clean + suppression des volumes Docker et des données locales)
 fclean: clean
-	@sudo rm -rf $(DATA_PATH)/mariadb/*
-	@sudo rm -rf $(DATA_PATH)/wordpress/*
+	@sudo rm -rf $(DATA_PATH)/mariadb/
+	@sudo rm -rf $(DATA_PATH)/wordpress/
 	@docker volume prune -f
 
 # Tout recommencer à zéro

@@ -14,7 +14,7 @@ RUN openssl req -x509 -nodes -out /etc/nginx/ssl/inception.crt -keyout /etc/ngin
 RUN mkdir -p /var/run/nginx
 
 # Copie de ta configuration NGINX personnalisée
-COPY conf/nginx.conf /etc/nginx/nginx.conf
+COPY conf/nginx.conf /etc/nginx/conf.d/ahamini.conf
 
 # Le conteneur écoutera sur le port 443
 EXPOSE 443

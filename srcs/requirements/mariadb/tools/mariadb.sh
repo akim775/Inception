@@ -1,30 +1,26 @@
 #!/bin/bash
 
-# Démarre le service MariaDB en arrière-plan juste le temps de le configurer
-service mariadb start
+# Check if the database directory already exists to skip re-configuration
+if [ ! -d "/var/lib/mysql/${MYSQL_DATABASE}" ]; then
+    
+    # Start service temporarily for configuration
+    service mariadb start
+    sleep 3
 
-# Petite pause pour laisser le temps à la base de données de bien démarrer
-sleep 3
+    # 1. Create DB and User using environment variables from your .env
+    mysql -e "CREATE DATABASE IF NOT EXISTS \`${MYSQL_DATABASE}\`;"
+    mysql -e "CREATE USER IF NOT EXISTS \`${MYSQL_USER}\`@'%' IDENTIFIED BY '${MYSQL_PASSWORD}';"
+    mysql -e "GRANT ALL PRIVILEGES ON \`${MYSQL_DATABASE}\`.* TO \`${MYSQL_USER}\`@'%';"
 
-# 1. Création de la base de données (si elle n'existe pas déjà)
-mysql -e "CREATE DATABASE IF NOT EXISTS \`${MYSQL_DATABASE}\`;"
+    # 2. Secure the root user
+    mysql -e "ALTER USER 'root'@'localhost' IDENTIFIED BY '${MYSQL_ROOT_PASSWORD}';"
+    mysql -e "FLUSH PRIVILEGES;"
 
-# 2. Création de ton utilisateur et attribution d'un mot de passe
-mysql -e "CREATE USER IF NOT EXISTS \`${MYSQL_USER}\`@'localhost' IDENTIFIED BY '${MYSQL_PASSWORD}';"
+    # 3. Shutdown using the NEW password to allow safe restart
+    mysqladmin -u root -p${MYSQL_ROOT_PASSWORD} shutdown
+else
+    echo "Database already initialized. Skipping configuration."
+fi
 
-# 3. On donne tous les droits à cet utilisateur sur la base de données
-# Le '%' est crucial : il autorise l'utilisateur à se connecter depuis une autre IP (le conteneur WordPress !)
-mysql -e "GRANT ALL PRIVILEGES ON \`${MYSQL_DATABASE}\`.* TO \`${MYSQL_USER}\`@'%' IDENTIFIED BY '${MYSQL_PASSWORD}';"
-
-# 4. On modifie le mot de passe de l'administrateur suprême (root) pour sécuriser la base
-mysql -e "ALTER USER 'root'@'localhost' IDENTIFIED BY '${MYSQL_ROOT_PASSWORD}';"
-
-# 5. On rafraîchit les droits pour que MariaDB prenne tout en compte immédiatement
-mysql -e "FLUSH PRIVILEGES;"
-
-# On éteint proprement le service qu'on avait lancé en arrière-plan
-mysqladmin -u root -p$MYSQL_ROOT_PASSWORD shutdown
-
-# On relance MariaDB en "premier plan" (foreground). 
-# C'est OBLIGATOIRE pour que le conteneur Docker reste allumé !
+# 4. Final execution in foreground (Required for Docker)
 exec mysqld_safe
